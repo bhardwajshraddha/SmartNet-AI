@@ -45,4 +45,20 @@ public class PcapReader {
             e.printStackTrace();
         }
     }
+    public boolean isValidPcapFile(String filePath) {
+
+    try (FileInputStream fis = new FileInputStream(filePath)) {
+
+        byte[] magic = new byte[4];
+
+        if (fis.read(magic) != 4) {
+            return false;
+        }
+
+        return true;
+
+    } catch (IOException e) {
+        return false;
+    }
+}
 }
