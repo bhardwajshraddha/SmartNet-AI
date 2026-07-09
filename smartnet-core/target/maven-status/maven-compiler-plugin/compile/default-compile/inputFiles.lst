@@ -7,4 +7,5 @@ D:\Project2\SmartNet-AI\smartnet-core\src\main\java\com\smartnet\Main.java
 D:\Project2\SmartNet-AI\smartnet-core\src\main\java\com\smartnet\model\ParsedPacket.java
 D:\Project2\SmartNet-AI\smartnet-core\src\main\java\com\smartnet\parser\PcapReader.java
 D:\Project2\SmartNet-AI\smartnet-core\src\main\java\com\smartnet\model\AppType.java
+D:\Project2\SmartNet-AI\smartnet-core\src\main\java\com\smartnet\parser\PacketParser.java
 D:\Project2\SmartNet-AI\smartnet-core\src\main\java\com\smartnet\model\PcapPacketHeader.java

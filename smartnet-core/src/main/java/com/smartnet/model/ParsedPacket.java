@@ -1,28 +1,48 @@
 package com.smartnet.model;
 
+import java.util.Arrays;
+
 public class ParsedPacket {
 
+    // =========================
+    // Ethernet Layer
+    // =========================
     private String sourceMac;
     private String destinationMac;
+    private int etherType;
 
+    // =========================
+    // Network Layer
+    // =========================
     private String sourceIp;
     private String destinationIp;
 
+    // =========================
+    // Transport Layer
+    // =========================
     private int sourcePort;
     private int destinationPort;
 
     private Protocol protocol;
 
+    // =========================
+    // Application Layer
+    // =========================
     private AppType appType = AppType.UNKNOWN;
 
+    // =========================
+    // Packet Information
+    // =========================
     private int packetLength;
-
     private byte[] payload;
-
     private long timestamp;
 
     public ParsedPacket() {
     }
+
+    // =========================
+    // Ethernet Getters & Setters
+    // =========================
 
     public String getSourceMac() {
         return sourceMac;
@@ -40,6 +60,18 @@ public class ParsedPacket {
         this.destinationMac = destinationMac;
     }
 
+    public int getEtherType() {
+        return etherType;
+    }
+
+    public void setEtherType(int etherType) {
+        this.etherType = etherType;
+    }
+
+    // =========================
+    // IP Getters & Setters
+    // =========================
+
     public String getSourceIp() {
         return sourceIp;
     }
@@ -55,6 +87,10 @@ public class ParsedPacket {
     public void setDestinationIp(String destinationIp) {
         this.destinationIp = destinationIp;
     }
+
+    // =========================
+    // Port Getters & Setters
+    // =========================
 
     public int getSourcePort() {
         return sourcePort;
@@ -72,6 +108,10 @@ public class ParsedPacket {
         this.destinationPort = destinationPort;
     }
 
+    // =========================
+    // Protocol
+    // =========================
+
     public Protocol getProtocol() {
         return protocol;
     }
@@ -80,6 +120,10 @@ public class ParsedPacket {
         this.protocol = protocol;
     }
 
+    // =========================
+    // Application Type
+    // =========================
+
     public AppType getAppType() {
         return appType;
     }
@@ -87,6 +131,10 @@ public class ParsedPacket {
     public void setAppType(AppType appType) {
         this.appType = appType;
     }
+
+    // =========================
+    // Packet Information
+    // =========================
 
     public int getPacketLength() {
         return packetLength;
@@ -110,5 +158,23 @@ public class ParsedPacket {
 
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    @Override
+    public String toString() {
+        return "ParsedPacket{" +
+                "sourceMac='" + sourceMac + '\'' +
+                ", destinationMac='" + destinationMac + '\'' +
+                ", etherType=0x" + Integer.toHexString(etherType).toUpperCase() +
+                ", sourceIp='" + sourceIp + '\'' +
+                ", destinationIp='" + destinationIp + '\'' +
+                ", sourcePort=" + sourcePort +
+                ", destinationPort=" + destinationPort +
+                ", protocol=" + protocol +
+                ", appType=" + appType +
+                ", packetLength=" + packetLength +
+                ", timestamp=" + timestamp +
+                ", payload=" + (payload == null ? "null" : Arrays.toString(payload)) +
+                '}';
     }
 }

@@ -1,3 +1,4 @@
+com\smartnet\parser\PacketParser.class
 com\smartnet\parser\PcapReader.class
 com\smartnet\model\RawPacket.class
 com\smartnet\util\ByteUtils.class

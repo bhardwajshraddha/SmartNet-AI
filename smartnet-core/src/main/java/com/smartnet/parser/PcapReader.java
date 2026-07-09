@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import com.smartnet.model.PcapPacketHeader;
+import com.smartnet.model.RawPacket;
+
 public class PcapReader {
 
     public void readGlobalHeader(String filePath) {
@@ -61,4 +64,42 @@ public class PcapReader {
         return false;
     }
 }
+public RawPacket readNextPacket(String filePath) {
+
+    try (FileInputStream fis = new FileInputStream(filePath)) {
+
+        // Skip Global Header (24 bytes)
+        fis.skip(24);
+
+        byte[] packetHeaderBytes = new byte[16];
+
+        if (fis.read(packetHeaderBytes) != 16) {
+            return null;
+        }
+
+        ByteBuffer buffer = ByteBuffer.wrap(packetHeaderBytes);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+
+        PcapPacketHeader header = new PcapPacketHeader();
+
+        header.setTimestampSeconds(Integer.toUnsignedLong(buffer.getInt()));
+        header.setTimestampMicroseconds(Integer.toUnsignedLong(buffer.getInt()));
+        header.setIncludedLength(buffer.getInt());
+        header.setOriginalLength(buffer.getInt());
+
+        byte[] data = new byte[header.getIncludedLength()];
+
+        if (fis.read(data) != header.getIncludedLength()) {
+            return null;
+        }
+
+        return new RawPacket(header, data);
+
+    } catch (IOException e) {
+        e.printStackTrace();
+        return null;
+    }
+}
+
+
 }
