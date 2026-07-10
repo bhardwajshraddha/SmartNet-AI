@@ -1,6 +1,8 @@
+
 package com.smartnet.parser;
 
 import com.smartnet.model.ParsedPacket;
+import com.smartnet.model.Protocol;
 import com.smartnet.model.RawPacket;
 
 import java.nio.ByteBuffer;
@@ -8,16 +10,21 @@ import java.nio.ByteOrder;
 
 public class PacketParser {
 
-    // Ethernet header:
+    // Ethernet Header
     // 6 bytes Destination MAC
     // 6 bytes Source MAC
     // 2 bytes EtherType
     private static final int ETHERNET_HEADER_LENGTH = 14;
     private static final int MAC_ADDRESS_LENGTH = 6;
 
+    // Minimum IPv4 header size
+    private static final int IPV4_MIN_HEADER_LENGTH = 20;
+     // Minimum header sizes
+private static final int TCP_MIN_HEADER_LENGTH = 20;
+private static final int UDP_HEADER_LENGTH = 8;
     /**
-     * Parses a raw packet.
-     * For now, only the Ethernet header is decoded.
+     * Parses a raw packet captured from the PCAP file.
+     * Currently supports Ethernet and IPv4 headers.
      */
     public ParsedPacket parse(RawPacket rawPacket) {
 
@@ -27,14 +34,13 @@ public class PacketParser {
 
         byte[] data = rawPacket.getData();
 
-        // A valid Ethernet frame must contain at least 14 bytes.
         if (data.length < ETHERNET_HEADER_LENGTH) {
             return null;
         }
 
         ParsedPacket packet = new ParsedPacket();
 
-        // Network protocols use Big Endian (network byte order).
+        // Network protocols use Big Endian byte order.
         ByteBuffer buffer = ByteBuffer.wrap(data);
         buffer.order(ByteOrder.BIG_ENDIAN);
 
@@ -42,11 +48,32 @@ public class PacketParser {
             return null;
         }
 
+        // Continue parsing only if the packet is IPv4.
+          if (packet.getEtherType() == 0x0800) {
+
+    if (!parseIPv4(buffer, packet)) {
+        return null;
+    }
+
+    if (packet.getProtocol() == Protocol.TCP) {
+
+        if (!parseTCP(buffer, packet)) {
+            return null;
+        }
+
+    } else if (packet.getProtocol() == Protocol.UDP) {
+
+        if (!parseUDP(buffer, packet)) {
+            return null;
+        }
+    }
+}
+
         return packet;
     }
 
     /**
-     * Reads the Ethernet header and fills the packet object.
+     * Reads the Ethernet header.
      */
     private boolean parseEthernet(ByteBuffer buffer, ParsedPacket packet) {
 
@@ -57,13 +84,9 @@ public class PacketParser {
         byte[] destinationMac = new byte[MAC_ADDRESS_LENGTH];
         byte[] sourceMac = new byte[MAC_ADDRESS_LENGTH];
 
-        // First 6 bytes -> Destination MAC
         buffer.get(destinationMac);
-
-        // Next 6 bytes -> Source MAC
         buffer.get(sourceMac);
 
-        // Last 2 bytes -> EtherType
         int etherType = Short.toUnsignedInt(buffer.getShort());
 
         packet.setDestinationMac(macToString(destinationMac));
@@ -74,13 +97,81 @@ public class PacketParser {
     }
 
     /**
-     * Converts a MAC address into the standard format.
-     * Example:
-     * 00:1A:2B:3C:4D:5E
+     * Reads the IPv4 header and extracts the basic fields.
+     */
+    private boolean parseIPv4(ByteBuffer buffer, ParsedPacket packet) {
+
+        if (buffer.remaining() < IPV4_MIN_HEADER_LENGTH) {
+            return false;
+        }
+
+        // First byte contains Version (upper 4 bits)
+        // and Header Length (lower 4 bits).
+        int versionAndLength = Byte.toUnsignedInt(buffer.get());
+
+        int version = versionAndLength >> 4;
+        int headerLength = (versionAndLength & 0x0F) * 4;
+
+        if (version != 4) {
+            return false;
+        }
+
+        if (headerLength < IPV4_MIN_HEADER_LENGTH ||
+                buffer.remaining() < headerLength - 1) {
+            return false;
+        }
+
+        packet.setIpVersion(version);
+        packet.setIpHeaderLength(headerLength);
+
+        // Skip DSCP + ECN
+        buffer.get();
+
+        // Skip Total Length
+        buffer.getShort();
+
+        // Skip Identification
+        buffer.getShort();
+
+        // Skip Flags + Fragment Offset
+        buffer.getShort();
+
+        // Read TTL
+        packet.setTtl(Byte.toUnsignedInt(buffer.get()));
+
+        // Read Protocol
+        packet.setProtocol(Protocol.fromNumber(Byte.toUnsignedInt(buffer.get())));
+
+        // Skip Header Checksum
+        buffer.getShort();
+
+        // Source IP
+        byte[] sourceIp = new byte[4];
+        buffer.get(sourceIp);
+        packet.setSourceIp(ipToString(sourceIp));
+
+        // Destination IP
+        byte[] destinationIp = new byte[4];
+        buffer.get(destinationIp);
+        packet.setDestinationIp(ipToString(destinationIp));
+
+        // Skip optional IPv4 header fields if present.
+        int optionBytes = headerLength - IPV4_MIN_HEADER_LENGTH;
+
+        if (optionBytes > 0) {
+            buffer.position(buffer.position() + optionBytes);
+        }
+
+        return true;
+    }
+
+    /**
+     * Converts a MAC address to the standard format.
+     * Example: 00:1A:2B:3C:4D:5E
      */
     private String macToString(byte[] mac) {
 
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder(17);
 
         for (int i = 0; i < mac.length; i++) {
 
@@ -93,4 +184,90 @@ public class PacketParser {
 
         return builder.toString();
     }
+
+    /**
+     * Converts a 4-byte IPv4 address into dotted decimal format.
+     * Example: 192.168.1.10
+     */
+    private String ipToString(byte[] ip) {
+
+        StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < ip.length; i++) {
+
+            builder.append(Byte.toUnsignedInt(ip[i]));
+
+            if (i < ip.length - 1) {
+                builder.append(".");
+            }
+        }
+
+        return builder.toString();
+    }
+
+    /**
+ * Reads the TCP header and extracts the basic fields.
+ */
+private boolean parseTCP(ByteBuffer buffer, ParsedPacket packet) {
+
+    if (buffer.remaining() < TCP_MIN_HEADER_LENGTH) {
+        return false;
+    }
+
+    // Read source and destination ports.
+    packet.setSourcePort(Short.toUnsignedInt(buffer.getShort()));
+    packet.setDestinationPort(Short.toUnsignedInt(buffer.getShort()));
+
+    // Skip Sequence Number
+    buffer.getInt();
+
+    // Skip Acknowledgement Number
+    buffer.getInt();
+
+    // First 4 bits contain the TCP header length.
+    int dataOffset = (Byte.toUnsignedInt(buffer.get()) >> 4) * 4;
+    packet.setTcpHeaderLength(dataOffset);
+
+    // Skip Flags
+    buffer.get();
+
+    // Skip Window Size
+    buffer.getShort();
+
+    // Skip Checksum
+    buffer.getShort();
+
+    // Skip Urgent Pointer
+    buffer.getShort();
+
+    // Skip TCP options if present.
+    int optionBytes = dataOffset - TCP_MIN_HEADER_LENGTH;
+
+    if (optionBytes > 0 && buffer.remaining() >= optionBytes) {
+        buffer.position(buffer.position() + optionBytes);
+    }
+
+    return true;
+}
+
+/**
+ * Reads the UDP header.
+ */
+private boolean parseUDP(ByteBuffer buffer, ParsedPacket packet) {
+
+    if (buffer.remaining() < UDP_HEADER_LENGTH) {
+        return false;
+    }
+
+    packet.setSourcePort(Short.toUnsignedInt(buffer.getShort()));
+    packet.setDestinationPort(Short.toUnsignedInt(buffer.getShort()));
+
+    // Skip Length
+    buffer.getShort();
+
+    // Skip Checksum
+    buffer.getShort();
+
+    return true;
+}
 }

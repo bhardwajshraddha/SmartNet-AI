@@ -11,18 +11,24 @@ public class ParsedPacket {
     private String destinationMac;
     private int etherType;
 
-    // =========================
-    // Network Layer
-    // =========================
-    private String sourceIp;
-    private String destinationIp;
 
+// =========================
+// Network Layer
+// =========================
+private String sourceIp;
+private String destinationIp;
+
+// IPv4 Header Information
+private int ipVersion;
+private int ipHeaderLength;
+private int ttl;
     // =========================
     // Transport Layer
     // =========================
     private int sourcePort;
     private int destinationPort;
-
+    // TCP Header Information
+    private int tcpHeaderLength;
     private Protocol protocol;
 
     // =========================
@@ -88,13 +94,39 @@ public class ParsedPacket {
         this.destinationIp = destinationIp;
     }
 
-    // =========================
-    // Port Getters & Setters
+        // =========================
+    // IPv4 Header Getters & Setters
     // =========================
 
+public int getIpVersion() {
+    return ipVersion;
+}
+
+public void setIpVersion(int ipVersion) {
+    this.ipVersion = ipVersion;
+}
+
+public int getIpHeaderLength() {
+    return ipHeaderLength;
+}
+
+public void setIpHeaderLength(int ipHeaderLength) {
+    this.ipHeaderLength = ipHeaderLength;
+}
+
+public int getTtl() {
+    return ttl;
+}
+
+public void setTtl(int ttl) {
+    this.ttl = ttl;
+}
     public int getSourcePort() {
         return sourcePort;
     }
+        // =========================
+        // Port Getters & Setters
+        // =========================
 
     public void setSourcePort(int sourcePort) {
         this.sourcePort = sourcePort;
@@ -107,7 +139,13 @@ public class ParsedPacket {
     public void setDestinationPort(int destinationPort) {
         this.destinationPort = destinationPort;
     }
+    public int getTcpHeaderLength() {
+    return tcpHeaderLength;
+}
 
+     public void setTcpHeaderLength(int tcpHeaderLength) {
+    this.tcpHeaderLength = tcpHeaderLength;
+     }
     // =========================
     // Protocol
     // =========================
@@ -168,6 +206,9 @@ public class ParsedPacket {
                 ", etherType=0x" + Integer.toHexString(etherType).toUpperCase() +
                 ", sourceIp='" + sourceIp + '\'' +
                 ", destinationIp='" + destinationIp + '\'' +
+                ", ipVersion=" + ipVersion +
+", ipHeaderLength=" + ipHeaderLength +
+", ttl=" + ttl +
                 ", sourcePort=" + sourcePort +
                 ", destinationPort=" + destinationPort +
                 ", protocol=" + protocol +
