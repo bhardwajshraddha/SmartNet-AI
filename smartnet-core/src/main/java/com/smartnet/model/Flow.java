@@ -37,6 +37,39 @@ public class Flow {
     }
 
     /**
+     * Duration of the flow in seconds.
+     */
+    public long getDuration() {
+        return lastSeen - firstSeen;
+    }
+
+    /**
+     * Average packet size.
+     */
+    public double getAveragePacketSize() {
+
+        if (packetCount == 0) {
+            return 0;
+        }
+
+        return (double) totalBytes / packetCount;
+    }
+
+    /**
+     * Packets processed per second.
+     */
+    public double getPacketsPerSecond() {
+
+        long duration = getDuration();
+
+        if (duration <= 0) {
+            return packetCount;
+        }
+
+        return (double) packetCount / duration;
+    }
+
+    /**
      * Updates flow statistics whenever a new packet belongs to this flow.
      */
     public void update(ParsedPacket packet) {
@@ -55,11 +88,14 @@ public class Flow {
     public String toString() {
 
         return "Flow{" +
-                "flow=" + flowKey +
-                ", packets=" + packetCount +
-                ", bytes=" + totalBytes +
-                ", firstSeen=" + firstSeen +
-                ", lastSeen=" + lastSeen +
-                '}';
+                "\n  flow=" + flowKey +
+                "\n  packets=" + packetCount +
+                "\n  bytes=" + totalBytes +
+                "\n  firstSeen=" + firstSeen +
+                "\n  lastSeen=" + lastSeen +
+                "\n  duration=" + getDuration() + " sec" +
+                "\n  avgPacketSize=" + String.format("%.2f", getAveragePacketSize()) + " bytes" +
+                "\n  packetsPerSecond=" + String.format("%.2f", getPacketsPerSecond()) +
+                "\n}";
     }
 }

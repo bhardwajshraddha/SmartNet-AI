@@ -11,15 +11,27 @@ public class FlowKey {
     private final String protocol;
 
     public FlowKey(String sourceIp,
-                   String destinationIp,
-                   int sourcePort,
-                   int destinationPort,
-                   String protocol) {
+            String destinationIp,
+            int sourcePort,
+            int destinationPort,
+            String protocol) {
 
-        this.sourceIp = sourceIp;
-        this.destinationIp = destinationIp;
-        this.sourcePort = sourcePort;
-        this.destinationPort = destinationPort;
+        // Normalize the flow so both directions map to the same key.
+        String endpoint1 = sourceIp + ":" + sourcePort;
+        String endpoint2 = destinationIp + ":" + destinationPort;
+
+        if (endpoint1.compareTo(endpoint2) <= 0) {
+            this.sourceIp = sourceIp;
+            this.destinationIp = destinationIp;
+            this.sourcePort = sourcePort;
+            this.destinationPort = destinationPort;
+        } else {
+            this.sourceIp = destinationIp;
+            this.destinationIp = sourceIp;
+            this.sourcePort = destinationPort;
+            this.destinationPort = sourcePort;
+        }
+
         this.protocol = protocol;
     }
 
@@ -68,15 +80,14 @@ public class FlowKey {
                 destinationIp,
                 sourcePort,
                 destinationPort,
-                protocol
-        );
+                protocol);
     }
 
     @Override
     public String toString() {
 
         return sourceIp + ":" + sourcePort
-                + " -> "
+                + " ⇄ "
                 + destinationIp + ":" + destinationPort
                 + " (" + protocol + ")";
     }
