@@ -1,5 +1,6 @@
 package com.smartnet;
 
+import com.smartnet.security.ThreatDetectionEngine;
 import com.smartnet.report.ReportGenerator;
 import com.smartnet.model.CaptureStatistics;
 import com.smartnet.model.ParsedPacket;
@@ -9,8 +10,8 @@ import com.smartnet.parser.PacketParser;
 import com.smartnet.parser.DpiEngine;
 import com.smartnet.parser.PcapReader;
 import com.smartnet.flow.FlowTracker;
-import com.smartnet.model.Flow;
 import com.smartnet.stats.StatisticsEngine;
+
 public class Main {
 
     public static void main(String[] args) {
@@ -18,6 +19,12 @@ public class Main {
         String filePath = "../test-data/test_dpi.pcap";
 
         PcapReader reader = new PcapReader();
+        PacketParser parser = new PacketParser();
+        FlowTracker flowTracker = new FlowTracker();
+        StatisticsEngine statisticsEngine = new StatisticsEngine();
+        ReportGenerator reportGenerator = new ReportGenerator();
+        ThreatDetectionEngine threatDetectionEngine = new ThreatDetectionEngine();
+        DpiEngine dpiEngine = new DpiEngine();
 
         if (!reader.isValidPcapFile(filePath)) {
             System.out.println("PCAP file not found.");
@@ -27,23 +34,26 @@ public class Main {
         System.out.println("PCAP file found.");
         reader.readGlobalHeader(filePath);
 
-        RawPacket packet = reader.readNextPacket(filePath);
+        // Open the PCAP for sequential packet reading
+        if (!reader.open(filePath)) {
+            System.out.println("Failed to open PCAP file.");
+            return;
+        }
 
-        if (packet != null) {
+        RawPacket packet;
+
+        while ((packet = reader.readNextPacket()) != null) {
 
             System.out.println();
-            System.out.println("===== FIRST PACKET =====");
+            System.out.println("===== PACKET =====");
             System.out.println("Timestamp : " + packet.getHeader().getTimestampSeconds());
             System.out.println("Length    : " + packet.getHeader().getIncludedLength());
             System.out.println("Data Size : " + packet.getData().length + " bytes");
 
-            PacketParser parser = new PacketParser();
-            FlowTracker flowTracker = new FlowTracker();
-            StatisticsEngine statisticsEngine = new StatisticsEngine();
-            ReportGenerator reportGenerator = new ReportGenerator();
             ParsedPacket parsedPacket = parser.parse(packet);
-            DpiEngine dpiEngine = new DpiEngine();
+
             dpiEngine.detectApplication(parsedPacket);
+            threatDetectionEngine.detectThreat(parsedPacket);
             if (parsedPacket != null) {
 
                 System.out.println();
@@ -73,33 +83,34 @@ public class Main {
                     System.out.println("Header Length    : " + parsedPacket.getTcpHeaderLength() + " bytes");
                 }
 
+                System.out.println();
+                System.out.println("===== APPLICATION =====");
+                System.out.println("Application : " + parsedPacket.getAppType());
 
                 System.out.println();
-System.out.println("===== APPLICATION =====");
-System.out.println("Application : " + parsedPacket.getAppType());
+                System.out.println("===== THREAT =====");
+                System.out.println("Threat : " + parsedPacket.getThreatType());
+                if (parsedPacket.getProtocol() == Protocol.UDP) {
 
-if (parsedPacket.getProtocol() == Protocol.UDP) {
+                    System.out.println();
+                    System.out.println("===== UDP HEADER =====");
+                    System.out.println("Source Port      : " + parsedPacket.getSourcePort());
+                    System.out.println("Destination Port : " + parsedPacket.getDestinationPort());
+                }
 
-    System.out.println();
-    System.out.println("===== UDP HEADER =====");
-    System.out.println("Source Port      : " + parsedPacket.getSourcePort());
-    System.out.println("Destination Port : " + parsedPacket.getDestinationPort());
-}
+                // Process packet
+                flowTracker.processPacket(parsedPacket);
+                statisticsEngine.processPacket(parsedPacket);
 
-// Process packet
-flowTracker.processPacket(parsedPacket);
-statisticsEngine.processPacket(parsedPacket);
+            } else {
+                System.out.println("Failed to parse the packet.");
+            }
 
-// Generate report
-CaptureStatistics statistics = statisticsEngine.getStatistics();
-reportGenerator.printReport(statistics, flowTracker);
+        }
+        reader.close();
+        // Generate report
+        CaptureStatistics statistics = statisticsEngine.getStatistics();
+        reportGenerator.printReport(statistics, flowTracker);
 
-} else {
-    System.out.println("Failed to parse the packet.");
-}
-
-} else {
-    System.out.println("No packet found.");
-}
-}
+    }
 }

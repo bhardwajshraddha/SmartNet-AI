@@ -1,3 +1,4 @@
+
 package com.smartnet.model;
 
 import java.util.Arrays;
@@ -11,23 +12,22 @@ public class ParsedPacket {
     private String destinationMac;
     private int etherType;
 
+    // =========================
+    // Network Layer
+    // =========================
+    private String sourceIp;
+    private String destinationIp;
 
-// =========================
-// Network Layer
-// =========================
-private String sourceIp;
-private String destinationIp;
+    // IPv4 Header Information
+    private int ipVersion;
+    private int ipHeaderLength;
+    private int ttl;
 
-// IPv4 Header Information
-private int ipVersion;
-private int ipHeaderLength;
-private int ttl;
     // =========================
     // Transport Layer
     // =========================
     private int sourcePort;
     private int destinationPort;
-    // TCP Header Information
     private int tcpHeaderLength;
     private Protocol protocol;
 
@@ -35,6 +35,7 @@ private int ttl;
     // Application Layer
     // =========================
     private AppType appType = AppType.UNKNOWN;
+    private ThreatType threatType = ThreatType.NONE;
 
     // =========================
     // Packet Information
@@ -94,39 +95,41 @@ private int ttl;
         this.destinationIp = destinationIp;
     }
 
-        // =========================
+    // =========================
     // IPv4 Header Getters & Setters
     // =========================
 
-public int getIpVersion() {
-    return ipVersion;
-}
+    public int getIpVersion() {
+        return ipVersion;
+    }
 
-public void setIpVersion(int ipVersion) {
-    this.ipVersion = ipVersion;
-}
+    public void setIpVersion(int ipVersion) {
+        this.ipVersion = ipVersion;
+    }
 
-public int getIpHeaderLength() {
-    return ipHeaderLength;
-}
+    public int getIpHeaderLength() {
+        return ipHeaderLength;
+    }
 
-public void setIpHeaderLength(int ipHeaderLength) {
-    this.ipHeaderLength = ipHeaderLength;
-}
+    public void setIpHeaderLength(int ipHeaderLength) {
+        this.ipHeaderLength = ipHeaderLength;
+    }
 
-public int getTtl() {
-    return ttl;
-}
+    public int getTtl() {
+        return ttl;
+    }
 
-public void setTtl(int ttl) {
-    this.ttl = ttl;
-}
+    public void setTtl(int ttl) {
+        this.ttl = ttl;
+    }
+
+    // =========================
+    // Port Getters & Setters
+    // =========================
+
     public int getSourcePort() {
         return sourcePort;
     }
-        // =========================
-        // Port Getters & Setters
-        // =========================
 
     public void setSourcePort(int sourcePort) {
         this.sourcePort = sourcePort;
@@ -139,13 +142,15 @@ public void setTtl(int ttl) {
     public void setDestinationPort(int destinationPort) {
         this.destinationPort = destinationPort;
     }
-    public int getTcpHeaderLength() {
-    return tcpHeaderLength;
-}
 
-     public void setTcpHeaderLength(int tcpHeaderLength) {
-    this.tcpHeaderLength = tcpHeaderLength;
-     }
+    public int getTcpHeaderLength() {
+        return tcpHeaderLength;
+    }
+
+    public void setTcpHeaderLength(int tcpHeaderLength) {
+        this.tcpHeaderLength = tcpHeaderLength;
+    }
+
     // =========================
     // Protocol
     // =========================
@@ -168,6 +173,18 @@ public void setTtl(int ttl) {
 
     public void setAppType(AppType appType) {
         this.appType = appType;
+    }
+
+    // =========================
+    // Threat Type
+    // =========================
+
+    public ThreatType getThreatType() {
+        return threatType;
+    }
+
+    public void setThreatType(ThreatType threatType) {
+        this.threatType = threatType;
     }
 
     // =========================
@@ -207,12 +224,13 @@ public void setTtl(int ttl) {
                 ", sourceIp='" + sourceIp + '\'' +
                 ", destinationIp='" + destinationIp + '\'' +
                 ", ipVersion=" + ipVersion +
-", ipHeaderLength=" + ipHeaderLength +
-", ttl=" + ttl +
+                ", ipHeaderLength=" + ipHeaderLength +
+                ", ttl=" + ttl +
                 ", sourcePort=" + sourcePort +
                 ", destinationPort=" + destinationPort +
                 ", protocol=" + protocol +
                 ", appType=" + appType +
+                ", threatType=" + threatType +
                 ", packetLength=" + packetLength +
                 ", timestamp=" + timestamp +
                 ", payload=" + (payload == null ? "null" : Arrays.toString(payload)) +

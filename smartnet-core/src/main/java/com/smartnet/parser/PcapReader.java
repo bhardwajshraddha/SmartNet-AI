@@ -1,24 +1,63 @@
 package com.smartnet.parser;
 
+import com.smartnet.model.PcapPacketHeader;
+import com.smartnet.model.RawPacket;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import com.smartnet.model.PcapPacketHeader;
-import com.smartnet.model.RawPacket;
-
 public class PcapReader {
 
+    private FileInputStream fis;
+
+    /**
+     * Opens the PCAP file and skips the global header.
+     */
+    public boolean open(String filePath) {
+
+        try {
+
+            fis = new FileInputStream(filePath);
+
+            byte[] globalHeader = new byte[24];
+
+            if (fis.read(globalHeader) != 24) {
+                return false;
+            }
+
+            return true;
+
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Closes the PCAP file.
+     */
+    public void close() {
+
+        if (fis != null) {
+
+            try {
+                fis.close();
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
+    /**
+     * Reads and prints the PCAP global header.
+     */
     public void readGlobalHeader(String filePath) {
 
-        try (FileInputStream fis = new FileInputStream(filePath)) {
+        try (FileInputStream input = new FileInputStream(filePath)) {
 
             byte[] header = new byte[24];
 
-            int bytesRead = fis.read(header);
-
-            if (bytesRead != 24) {
+            if (input.read(header) != 24) {
                 System.out.println("Invalid PCAP file.");
                 return;
             }
@@ -30,8 +69,8 @@ public class PcapReader {
             short versionMajor = buffer.getShort();
             short versionMinor = buffer.getShort();
 
-            buffer.getInt(); // thiszone
-            buffer.getInt(); // sigfigs
+            buffer.getInt();
+            buffer.getInt();
 
             int snaplen = buffer.getInt();
             int network = buffer.getInt();
@@ -44,62 +83,60 @@ public class PcapReader {
             System.out.println("========================================");
 
         } catch (IOException e) {
-            System.out.println("Error reading PCAP file.");
             e.printStackTrace();
         }
     }
+
     public boolean isValidPcapFile(String filePath) {
 
-    try (FileInputStream fis = new FileInputStream(filePath)) {
+        try (FileInputStream input = new FileInputStream(filePath)) {
 
-        byte[] magic = new byte[4];
+            return input.read() != -1;
 
-        if (fis.read(magic) != 4) {
+        } catch (IOException e) {
+
             return false;
         }
-
-        return true;
-
-    } catch (IOException e) {
-        return false;
     }
-}
-public RawPacket readNextPacket(String filePath) {
 
-    try (FileInputStream fis = new FileInputStream(filePath)) {
+    /**
+     * Reads the next packet from the already-open file.
+     */
+    public RawPacket readNextPacket() {
 
-        // Skip Global Header (24 bytes)
-        fis.skip(24);
-
-        byte[] packetHeaderBytes = new byte[16];
-
-        if (fis.read(packetHeaderBytes) != 16) {
+        if (fis == null) {
             return null;
         }
 
-        ByteBuffer buffer = ByteBuffer.wrap(packetHeaderBytes);
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        try {
 
-        PcapPacketHeader header = new PcapPacketHeader();
+            byte[] packetHeaderBytes = new byte[16];
 
-        header.setTimestampSeconds(Integer.toUnsignedLong(buffer.getInt()));
-        header.setTimestampMicroseconds(Integer.toUnsignedLong(buffer.getInt()));
-        header.setIncludedLength(buffer.getInt());
-        header.setOriginalLength(buffer.getInt());
+            if (fis.read(packetHeaderBytes) != 16) {
+                return null;
+            }
 
-        byte[] data = new byte[header.getIncludedLength()];
+            ByteBuffer buffer = ByteBuffer.wrap(packetHeaderBytes);
+            buffer.order(ByteOrder.LITTLE_ENDIAN);
 
-        if (fis.read(data) != header.getIncludedLength()) {
+            PcapPacketHeader header = new PcapPacketHeader();
+
+            header.setTimestampSeconds(Integer.toUnsignedLong(buffer.getInt()));
+            header.setTimestampMicroseconds(Integer.toUnsignedLong(buffer.getInt()));
+            header.setIncludedLength(buffer.getInt());
+            header.setOriginalLength(buffer.getInt());
+
+            byte[] data = new byte[header.getIncludedLength()];
+
+            if (fis.read(data) != header.getIncludedLength()) {
+                return null;
+            }
+
+            return new RawPacket(header, data);
+
+        } catch (IOException e) {
+
             return null;
         }
-
-        return new RawPacket(header, data);
-
-    } catch (IOException e) {
-        e.printStackTrace();
-        return null;
     }
-}
-
-
 }

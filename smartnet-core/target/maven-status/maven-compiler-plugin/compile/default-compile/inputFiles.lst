@@ -11,6 +11,9 @@ D:\Project2\SmartNet-AI\smartnet-core\src\main\java\com\smartnet\model\AppType.j
 D:\Project2\SmartNet-AI\smartnet-core\src\main\java\com\smartnet\parser\PacketParser.java
 D:\Project2\SmartNet-AI\smartnet-core\src\main\java\com\smartnet\report\ReportGenerator.java
 D:\Project2\SmartNet-AI\smartnet-core\src\main\java\com\smartnet\parser\DpiEngine.java
+D:\Project2\SmartNet-AI\smartnet-core\src\main\java\com\smartnet\model\ThreatType.java
+D:\Project2\SmartNet-AI\smartnet-core\src\main\java\com\smartnet\security\PortScanDetector.java
+D:\Project2\SmartNet-AI\smartnet-core\src\main\java\com\smartnet\security\ThreatDetectionEngine.java
 D:\Project2\SmartNet-AI\smartnet-core\src\main\java\com\smartnet\stats\StatisticsEngine.java
 D:\Project2\SmartNet-AI\smartnet-core\src\main\java\com\smartnet\model\FiveTuple.java
 D:\Project2\SmartNet-AI\smartnet-core\src\main\java\com\smartnet\util\ByteUtils.java
