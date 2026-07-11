@@ -4,8 +4,10 @@ import com.smartnet.model.ParsedPacket;
 import com.smartnet.model.Protocol;
 import com.smartnet.model.RawPacket;
 import com.smartnet.parser.PacketParser;
+import com.smartnet.parser.DpiEngine;
 import com.smartnet.parser.PcapReader;
-
+import com.smartnet.flow.FlowTracker;
+import com.smartnet.model.Flow;
 public class Main {
 
     public static void main(String[] args) {
@@ -33,8 +35,10 @@ public class Main {
             System.out.println("Data Size : " + packet.getData().length + " bytes");
 
             PacketParser parser = new PacketParser();
+            FlowTracker flowTracker = new FlowTracker();
             ParsedPacket parsedPacket = parser.parse(packet);
-
+            DpiEngine dpiEngine = new DpiEngine();
+            dpiEngine.detectApplication(parsedPacket);
             if (parsedPacket != null) {
 
                 System.out.println();
@@ -64,12 +68,35 @@ public class Main {
                     System.out.println("Header Length    : " + parsedPacket.getTcpHeaderLength() + " bytes");
                 }
 
-            } else {
-                System.out.println("Failed to parse the packet.");
-            }
 
-        } else {
-            System.out.println("No packet found.");
-        }
-    }
+                System.out.println();
+System.out.println("===== APPLICATION =====");
+System.out.println("Application : " + parsedPacket.getAppType());
+
+if (parsedPacket.getProtocol() == Protocol.UDP) {
+
+    System.out.println();
+    System.out.println("===== UDP HEADER =====");
+    System.out.println("Source Port      : " + parsedPacket.getSourcePort());
+    System.out.println("Destination Port : " + parsedPacket.getDestinationPort());
+}
+
+// Add packet to flow tracker
+flowTracker.processPacket(parsedPacket);
+
+System.out.println();
+System.out.println("===== FLOW SUMMARY =====");
+
+for (Flow flow : flowTracker.getFlows()) {
+    System.out.println(flow);
+}
+
+} else {
+    System.out.println("Failed to parse the packet.");
+}
+
+} else {
+    System.out.println("No packet found.");
+}
+}
 }

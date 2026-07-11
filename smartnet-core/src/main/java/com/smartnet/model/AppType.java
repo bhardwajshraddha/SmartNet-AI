@@ -7,9 +7,11 @@ public enum AppType {
     HTTP,
     HTTPS,
     DNS,
+    SSH,
+FTP,
+SMTP,
     TLS,
     QUIC,
-
     GOOGLE,
     YOUTUBE,
     GITHUB,

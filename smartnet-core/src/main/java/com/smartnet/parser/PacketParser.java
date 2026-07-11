@@ -39,7 +39,8 @@ private static final int UDP_HEADER_LENGTH = 8;
         }
 
         ParsedPacket packet = new ParsedPacket();
-
+        packet.setPacketLength(rawPacket.getHeader().getIncludedLength());
+packet.setTimestamp(rawPacket.getHeader().getTimestampSeconds());
         // Network protocols use Big Endian byte order.
         ByteBuffer buffer = ByteBuffer.wrap(data);
         buffer.order(ByteOrder.BIG_ENDIAN);
