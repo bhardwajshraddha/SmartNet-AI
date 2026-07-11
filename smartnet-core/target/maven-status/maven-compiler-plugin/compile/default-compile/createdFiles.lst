@@ -1,9 +1,12 @@
 com\smartnet\flow\FlowKey.class
+com\smartnet\report\ReportGenerator.class
 com\smartnet\model\RawPacket.class
 com\smartnet\util\ByteUtils.class
 com\smartnet\Main.class
 com\smartnet\model\PcapGlobalHeader.class
 com\smartnet\model\Protocol.class
+com\smartnet\model\CaptureStatistics.class
+com\smartnet\stats\StatisticsEngine.class
 com\smartnet\model\AppType.class
 com\smartnet\model\ParsedPacket.class
 com\smartnet\parser\PacketParser.class
@@ -12,4 +15,5 @@ com\smartnet\parser\DpiEngine.class
 com\smartnet\model\PcapPacketHeader.class
 com\smartnet\flow\FlowTracker.class
 com\smartnet\model\FiveTuple.class
+com\smartnet\stats\StatisticsEngine$1.class
 com\smartnet\model\Flow.class

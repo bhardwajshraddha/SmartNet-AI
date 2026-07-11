@@ -1,5 +1,7 @@
 package com.smartnet;
 
+import com.smartnet.report.ReportGenerator;
+import com.smartnet.model.CaptureStatistics;
 import com.smartnet.model.ParsedPacket;
 import com.smartnet.model.Protocol;
 import com.smartnet.model.RawPacket;
@@ -8,6 +10,7 @@ import com.smartnet.parser.DpiEngine;
 import com.smartnet.parser.PcapReader;
 import com.smartnet.flow.FlowTracker;
 import com.smartnet.model.Flow;
+import com.smartnet.stats.StatisticsEngine;
 public class Main {
 
     public static void main(String[] args) {
@@ -36,6 +39,8 @@ public class Main {
 
             PacketParser parser = new PacketParser();
             FlowTracker flowTracker = new FlowTracker();
+            StatisticsEngine statisticsEngine = new StatisticsEngine();
+            ReportGenerator reportGenerator = new ReportGenerator();
             ParsedPacket parsedPacket = parser.parse(packet);
             DpiEngine dpiEngine = new DpiEngine();
             dpiEngine.detectApplication(parsedPacket);
@@ -81,15 +86,13 @@ if (parsedPacket.getProtocol() == Protocol.UDP) {
     System.out.println("Destination Port : " + parsedPacket.getDestinationPort());
 }
 
-// Add packet to flow tracker
+// Process packet
 flowTracker.processPacket(parsedPacket);
+statisticsEngine.processPacket(parsedPacket);
 
-System.out.println();
-System.out.println("===== FLOW SUMMARY =====");
-
-for (Flow flow : flowTracker.getFlows()) {
-    System.out.println(flow);
-}
+// Generate report
+CaptureStatistics statistics = statisticsEngine.getStatistics();
+reportGenerator.printReport(statistics, flowTracker);
 
 } else {
     System.out.println("Failed to parse the packet.");
