@@ -9,26 +9,58 @@ public class StatisticsEngine {
 
     private final CaptureStatistics statistics = new CaptureStatistics();
 
+    /**
+     * Updates packet statistics.
+     */
     public void processPacket(ParsedPacket packet) {
 
         if (packet == null) {
             return;
         }
 
+        // ==========================
+        // Overall Statistics
+        // ==========================
+
         statistics.incrementTotalPackets();
         statistics.addBytes(packet.getPacketLength());
 
-        if (packet.getProtocol() == Protocol.TCP) {
-            statistics.incrementTcpPackets();
+        // ==========================
+        // Protocol Statistics
+        // ==========================
 
-        } else if (packet.getProtocol() == Protocol.UDP) {
-            statistics.incrementUdpPackets();
+        Protocol protocol = packet.getProtocol();
 
-        } else if (packet.getProtocol() == Protocol.ICMP) {
-            statistics.incrementIcmpPackets();
+        if (protocol != null) {
+
+            switch (protocol) {
+
+                case TCP:
+                    statistics.incrementTcpPackets();
+                    break;
+
+                case UDP:
+                    statistics.incrementUdpPackets();
+                    break;
+
+                case ICMP:
+                    statistics.incrementIcmpPackets();
+                    break;
+
+                default:
+                    break;
+            }
         }
 
+        // ==========================
+        // Application Statistics
+        // ==========================
+
         AppType app = packet.getAppType();
+
+        if (app == null) {
+            app = AppType.UNKNOWN;
+        }
 
         switch (app) {
 
@@ -58,10 +90,16 @@ public class StatisticsEngine {
 
             default:
                 statistics.incrementUnknownPackets();
+                break;
         }
     }
 
     public CaptureStatistics getStatistics() {
         return statistics;
+    }
+
+    @Override
+    public String toString() {
+        return statistics.toString();
     }
 }

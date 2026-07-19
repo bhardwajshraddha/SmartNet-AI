@@ -30,7 +30,10 @@ public class CaptureStatistics {
     }
 
     public void addBytes(long bytes) {
-        totalBytes += bytes;
+
+        if (bytes > 0) {
+            totalBytes += bytes;
+        }
     }
 
     public int getTcpPackets() {
@@ -113,19 +116,32 @@ public class CaptureStatistics {
         unknownPackets++;
     }
 
+    /**
+     * Returns average packet size in bytes.
+     */
+    public double getAveragePacketSize() {
+
+        if (totalPackets == 0) {
+            return 0.0;
+        }
+
+        return (double) totalBytes / totalPackets;
+    }
+
     @Override
     public String toString() {
 
         return """
-                
+
                 ===== CAPTURE STATISTICS =====
                 Total Packets : %d
                 Total Bytes   : %d
-                
+                Average Size  : %.2f bytes
+
                 TCP Packets   : %d
                 UDP Packets   : %d
                 ICMP Packets  : %d
-                
+
                 HTTP          : %d
                 HTTPS         : %d
                 DNS           : %d
@@ -137,6 +153,7 @@ public class CaptureStatistics {
                 .formatted(
                         totalPackets,
                         totalBytes,
+                        getAveragePacketSize(),
                         tcpPackets,
                         udpPackets,
                         icmpPackets,
@@ -146,7 +163,6 @@ public class CaptureStatistics {
                         sshPackets,
                         ftpPackets,
                         smtpPackets,
-                        unknownPackets
-                );
+                        unknownPackets);
     }
 }

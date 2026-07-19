@@ -4,14 +4,23 @@ public enum AppType {
 
     UNKNOWN,
 
+    // ==========================
+    // Network Protocols
+    // ==========================
+
     HTTP,
     HTTPS,
     DNS,
     SSH,
-FTP,
-SMTP,
+    FTP,
+    SMTP,
     TLS,
     QUIC,
+
+    // ==========================
+    // Web Services / Applications
+    // ==========================
+
     GOOGLE,
     YOUTUBE,
     GITHUB,
@@ -27,5 +36,10 @@ SMTP,
     TIKTOK,
     ZOOM,
 
-    OTHER
+    OTHER;
+
+    @Override
+    public String toString() {
+        return name();
+    }
 }

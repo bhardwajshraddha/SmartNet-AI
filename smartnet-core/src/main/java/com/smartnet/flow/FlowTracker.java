@@ -17,7 +17,10 @@ public class FlowTracker {
      */
     public void processPacket(ParsedPacket packet) {
 
-        if (packet == null || packet.getProtocol() == null) {
+        if (packet == null ||
+                packet.getProtocol() == null ||
+                packet.getSourceIp() == null ||
+                packet.getDestinationIp() == null) {
             return;
         }
 
@@ -26,15 +29,9 @@ public class FlowTracker {
                 packet.getDestinationIp(),
                 packet.getSourcePort(),
                 packet.getDestinationPort(),
-                packet.getProtocol().name()
-        );
+                packet.getProtocol().name());
 
-        Flow flow = flows.get(key);
-
-        if (flow == null) {
-            flow = new Flow(key);
-            flows.put(key, flow);
-        }
+        Flow flow = flows.computeIfAbsent(key, Flow::new);
 
         flow.update(packet);
     }
@@ -47,7 +44,7 @@ public class FlowTracker {
     }
 
     /**
-     * Returns the number of active flows.
+     * Returns the number of tracked flows.
      */
     public int getFlowCount() {
         return flows.size();

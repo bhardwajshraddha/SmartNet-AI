@@ -19,9 +19,10 @@ public class PacketParser {
 
     // Minimum IPv4 header size
     private static final int IPV4_MIN_HEADER_LENGTH = 20;
-     // Minimum header sizes
-private static final int TCP_MIN_HEADER_LENGTH = 20;
-private static final int UDP_HEADER_LENGTH = 8;
+    // Minimum header sizes
+    private static final int TCP_MIN_HEADER_LENGTH = 20;
+    private static final int UDP_HEADER_LENGTH = 8;
+
     /**
      * Parses a raw packet captured from the PCAP file.
      * Currently supports Ethernet and IPv4 headers.
@@ -40,7 +41,7 @@ private static final int UDP_HEADER_LENGTH = 8;
 
         ParsedPacket packet = new ParsedPacket();
         packet.setPacketLength(rawPacket.getHeader().getIncludedLength());
-packet.setTimestamp(rawPacket.getHeader().getTimestampSeconds());
+        packet.setTimestamp(rawPacket.getHeader().getTimestampSeconds());
         // Network protocols use Big Endian byte order.
         ByteBuffer buffer = ByteBuffer.wrap(data);
         buffer.order(ByteOrder.BIG_ENDIAN);
@@ -50,25 +51,25 @@ packet.setTimestamp(rawPacket.getHeader().getTimestampSeconds());
         }
 
         // Continue parsing only if the packet is IPv4.
-          if (packet.getEtherType() == 0x0800) {
+        if (packet.getEtherType() == 0x0800) {
 
-    if (!parseIPv4(buffer, packet)) {
-        return null;
-    }
+            if (!parseIPv4(buffer, packet)) {
+                return null;
+            }
 
-    if (packet.getProtocol() == Protocol.TCP) {
+            if (packet.getProtocol() == Protocol.TCP) {
 
-        if (!parseTCP(buffer, packet)) {
-            return null;
+                if (!parseTCP(buffer, packet)) {
+                    return null;
+                }
+
+            } else if (packet.getProtocol() == Protocol.UDP) {
+
+                if (!parseUDP(buffer, packet)) {
+                    return null;
+                }
+            }
         }
-
-    } else if (packet.getProtocol() == Protocol.UDP) {
-
-        if (!parseUDP(buffer, packet)) {
-            return null;
-        }
-    }
-}
 
         return packet;
     }
@@ -128,7 +129,7 @@ packet.setTimestamp(rawPacket.getHeader().getTimestampSeconds());
         // Skip DSCP + ECN
         buffer.get();
 
-        // Skip Total Length
+        // Total Length (unused for now)
         buffer.getShort();
 
         // Skip Identification
@@ -160,6 +161,10 @@ packet.setTimestamp(rawPacket.getHeader().getTimestampSeconds());
         int optionBytes = headerLength - IPV4_MIN_HEADER_LENGTH;
 
         if (optionBytes > 0) {
+            if (buffer.remaining() < optionBytes) {
+                return false;
+            }
+
             buffer.position(buffer.position() + optionBytes);
         }
 
@@ -207,68 +212,104 @@ packet.setTimestamp(rawPacket.getHeader().getTimestampSeconds());
     }
 
     /**
- * Reads the TCP header and extracts the basic fields.
- */
-private boolean parseTCP(ByteBuffer buffer, ParsedPacket packet) {
+     * Reads the TCP header and extracts the basic fields.
+     */
+    private boolean parseTCP(ByteBuffer buffer, ParsedPacket packet) {
 
-    if (buffer.remaining() < TCP_MIN_HEADER_LENGTH) {
-        return false;
+        if (buffer.remaining() < TCP_MIN_HEADER_LENGTH) {
+            return false;
+        }
+
+        // Read source and destination ports
+        packet.setSourcePort(Short.toUnsignedInt(buffer.getShort()));
+        packet.setDestinationPort(Short.toUnsignedInt(buffer.getShort()));
+
+        // Skip Sequence Number
+        buffer.getInt();
+
+        // Skip Acknowledgement Number
+        buffer.getInt();
+
+        // Read Data Offset (Header Length)
+        int dataOffset = (Byte.toUnsignedInt(buffer.get()) >> 4) * 4;
+        packet.setTcpHeaderLength(dataOffset);
+
+        // Skip Flags
+        buffer.get();
+
+        // Skip Window Size
+        buffer.getShort();
+
+        // Skip Checksum
+        buffer.getShort();
+
+        // Skip Urgent Pointer
+        buffer.getShort();
+
+        // Skip TCP Options (if any)
+        int optionBytes = dataOffset - TCP_MIN_HEADER_LENGTH;
+
+        if (optionBytes > 0) {
+
+            if (buffer.remaining() < optionBytes) {
+                return false;
+            }
+
+            buffer.position(buffer.position() + optionBytes);
+        }
+
+        // ==========================
+        // Extract TCP Payload
+        // ==========================
+
+        int payloadLength = buffer.remaining();
+
+        if (payloadLength > 0) {
+
+            byte[] payload = new byte[payloadLength];
+            buffer.get(payload);
+
+            packet.setPayload(payload);
+
+        } else {
+
+            packet.setPayload(new byte[0]);
+        }
+
+        return true;
     }
 
-    // Read source and destination ports.
-    packet.setSourcePort(Short.toUnsignedInt(buffer.getShort()));
-    packet.setDestinationPort(Short.toUnsignedInt(buffer.getShort()));
+    /**
+     * Reads the UDP header.
+     */
+    private boolean parseUDP(ByteBuffer buffer, ParsedPacket packet) {
 
-    // Skip Sequence Number
-    buffer.getInt();
+        if (buffer.remaining() < UDP_HEADER_LENGTH) {
+            return false;
+        }
 
-    // Skip Acknowledgement Number
-    buffer.getInt();
+        packet.setSourcePort(Short.toUnsignedInt(buffer.getShort()));
+        packet.setDestinationPort(Short.toUnsignedInt(buffer.getShort()));
 
-    // First 4 bits contain the TCP header length.
-    int dataOffset = (Byte.toUnsignedInt(buffer.get()) >> 4) * 4;
-    packet.setTcpHeaderLength(dataOffset);
+        // Skip Length
+        buffer.getShort();
 
-    // Skip Flags
-    buffer.get();
+        // Skip Checksum
+        buffer.getShort();
 
-    // Skip Window Size
-    buffer.getShort();
+        // =============================
+        // Save UDP Payload
+        // =============================
+        if (buffer.remaining() > 0) {
 
-    // Skip Checksum
-    buffer.getShort();
+            byte[] payload = new byte[buffer.remaining()];
+            buffer.get(payload);
+            packet.setPayload(payload);
 
-    // Skip Urgent Pointer
-    buffer.getShort();
+        } else {
 
-    // Skip TCP options if present.
-    int optionBytes = dataOffset - TCP_MIN_HEADER_LENGTH;
-
-    if (optionBytes > 0 && buffer.remaining() >= optionBytes) {
-        buffer.position(buffer.position() + optionBytes);
+            packet.setPayload(new byte[0]);
+        }
+        return true;
     }
-
-    return true;
-}
-
-/**
- * Reads the UDP header.
- */
-private boolean parseUDP(ByteBuffer buffer, ParsedPacket packet) {
-
-    if (buffer.remaining() < UDP_HEADER_LENGTH) {
-        return false;
-    }
-
-    packet.setSourcePort(Short.toUnsignedInt(buffer.getShort()));
-    packet.setDestinationPort(Short.toUnsignedInt(buffer.getShort()));
-
-    // Skip Length
-    buffer.getShort();
-
-    // Skip Checksum
-    buffer.getShort();
-
-    return true;
-}
 }

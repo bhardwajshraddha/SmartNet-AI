@@ -21,18 +21,21 @@ public class FlowKey {
         String endpoint2 = destinationIp + ":" + destinationPort;
 
         if (endpoint1.compareTo(endpoint2) <= 0) {
+
             this.sourceIp = sourceIp;
             this.destinationIp = destinationIp;
             this.sourcePort = sourcePort;
             this.destinationPort = destinationPort;
+
         } else {
+
             this.sourceIp = destinationIp;
             this.destinationIp = sourceIp;
             this.sourcePort = destinationPort;
             this.destinationPort = sourcePort;
         }
 
-        this.protocol = protocol;
+        this.protocol = (protocol == null) ? "UNKNOWN" : protocol;
     }
 
     public String getSourceIp() {
@@ -75,6 +78,7 @@ public class FlowKey {
 
     @Override
     public int hashCode() {
+
         return Objects.hash(
                 sourceIp,
                 destinationIp,

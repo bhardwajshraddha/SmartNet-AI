@@ -17,12 +17,24 @@ public enum Protocol {
         return protocolNumber;
     }
 
+    /**
+     * Converts the protocol number from the IPv4 header
+     * into the corresponding enum.
+     */
     public static Protocol fromNumber(int number) {
-        for (Protocol protocol : values()) {
+
+        for (Protocol protocol : Protocol.values()) {
+
             if (protocol.protocolNumber == number) {
                 return protocol;
             }
         }
+
         return UNKNOWN;
+    }
+
+    @Override
+    public String toString() {
+        return name();
     }
 }

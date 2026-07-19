@@ -1,4 +1,3 @@
-
 package com.smartnet.model;
 
 import java.util.Arrays;
@@ -36,6 +35,10 @@ public class ParsedPacket {
     // =========================
     private AppType appType = AppType.UNKNOWN;
     private ThreatType threatType = ThreatType.NONE;
+    private ThreatSeverity threatSeverity = ThreatSeverity.NONE;
+
+    // TLS Server Name (SNI)
+    private String serverName = "Unknown";
 
     // =========================
     // Packet Information
@@ -48,7 +51,7 @@ public class ParsedPacket {
     }
 
     // =========================
-    // Ethernet Getters & Setters
+    // Ethernet
     // =========================
 
     public String getSourceMac() {
@@ -76,7 +79,7 @@ public class ParsedPacket {
     }
 
     // =========================
-    // IP Getters & Setters
+    // IP
     // =========================
 
     public String getSourceIp() {
@@ -94,10 +97,6 @@ public class ParsedPacket {
     public void setDestinationIp(String destinationIp) {
         this.destinationIp = destinationIp;
     }
-
-    // =========================
-    // IPv4 Header Getters & Setters
-    // =========================
 
     public int getIpVersion() {
         return ipVersion;
@@ -124,7 +123,7 @@ public class ParsedPacket {
     }
 
     // =========================
-    // Port Getters & Setters
+    // Transport
     // =========================
 
     public int getSourcePort() {
@@ -151,10 +150,6 @@ public class ParsedPacket {
         this.tcpHeaderLength = tcpHeaderLength;
     }
 
-    // =========================
-    // Protocol
-    // =========================
-
     public Protocol getProtocol() {
         return protocol;
     }
@@ -164,7 +159,7 @@ public class ParsedPacket {
     }
 
     // =========================
-    // Application Type
+    // Application
     // =========================
 
     public AppType getAppType() {
@@ -176,7 +171,7 @@ public class ParsedPacket {
     }
 
     // =========================
-    // Threat Type
+    // Threat Detection
     // =========================
 
     public ThreatType getThreatType() {
@@ -187,8 +182,28 @@ public class ParsedPacket {
         this.threatType = threatType;
     }
 
+    public ThreatSeverity getThreatSeverity() {
+        return threatSeverity;
+    }
+
+    public void setThreatSeverity(ThreatSeverity threatSeverity) {
+        this.threatSeverity = threatSeverity;
+    }
+
     // =========================
-    // Packet Information
+    // TLS
+    // =========================
+
+    public String getServerName() {
+        return serverName;
+    }
+
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
+    }
+
+    // =========================
+    // Packet Info
     // =========================
 
     public int getPacketLength() {
@@ -217,6 +232,7 @@ public class ParsedPacket {
 
     @Override
     public String toString() {
+
         return "ParsedPacket{" +
                 "sourceMac='" + sourceMac + '\'' +
                 ", destinationMac='" + destinationMac + '\'' +
@@ -230,7 +246,9 @@ public class ParsedPacket {
                 ", destinationPort=" + destinationPort +
                 ", protocol=" + protocol +
                 ", appType=" + appType +
+                ", serverName='" + serverName + '\'' +
                 ", threatType=" + threatType +
+                ", threatSeverity=" + threatSeverity +
                 ", packetLength=" + packetLength +
                 ", timestamp=" + timestamp +
                 ", payload=" + (payload == null ? "null" : Arrays.toString(payload)) +

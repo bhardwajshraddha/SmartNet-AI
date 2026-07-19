@@ -54,6 +54,7 @@ public class Main {
 
             dpiEngine.detectApplication(parsedPacket);
             threatDetectionEngine.detectThreat(parsedPacket);
+
             if (parsedPacket != null) {
 
                 System.out.println();
@@ -85,11 +86,27 @@ public class Main {
 
                 System.out.println();
                 System.out.println("===== APPLICATION =====");
+
+                System.out.println();
+                System.out.println("===== DEBUG =====");
+
+                if (parsedPacket.getPayload() == null) {
+                    System.out.println("Payload : NULL");
+                } else {
+                    System.out.println("Payload Size : " + parsedPacket.getPayload().length);
+                }
+
                 System.out.println("Application : " + parsedPacket.getAppType());
+
+                // ===== NEW =====
+                if (parsedPacket.getAppType() == com.smartnet.model.AppType.HTTPS) {
+                    System.out.println("Server Name : " + parsedPacket.getServerName());
+                }
 
                 System.out.println();
                 System.out.println("===== THREAT =====");
                 System.out.println("Threat : " + parsedPacket.getThreatType());
+
                 if (parsedPacket.getProtocol() == Protocol.UDP) {
 
                     System.out.println();
@@ -107,7 +124,9 @@ public class Main {
             }
 
         }
+
         reader.close();
+
         // Generate report
         CaptureStatistics statistics = statisticsEngine.getStatistics();
         reportGenerator.printReport(statistics, flowTracker);

@@ -37,32 +37,32 @@ public class Flow {
     }
 
     /**
-     * Duration of the flow in seconds.
+     * Flow duration in seconds.
      */
     public long getDuration() {
-        return lastSeen - firstSeen;
+        return Math.max(0, lastSeen - firstSeen);
     }
 
     /**
-     * Average packet size.
+     * Average packet size in bytes.
      */
     public double getAveragePacketSize() {
 
         if (packetCount == 0) {
-            return 0;
+            return 0.0;
         }
 
         return (double) totalBytes / packetCount;
     }
 
     /**
-     * Packets processed per second.
+     * Average packets per second.
      */
     public double getPacketsPerSecond() {
 
         long duration = getDuration();
 
-        if (duration <= 0) {
+        if (duration == 0) {
             return packetCount;
         }
 
@@ -70,14 +70,18 @@ public class Flow {
     }
 
     /**
-     * Updates flow statistics whenever a new packet belongs to this flow.
+     * Updates this flow using the latest packet.
      */
     public void update(ParsedPacket packet) {
+
+        if (packet == null) {
+            return;
+        }
 
         packetCount++;
         totalBytes += packet.getPacketLength();
 
-        if (firstSeen == 0) {
+        if (packetCount == 1) {
             firstSeen = packet.getTimestamp();
         }
 
@@ -94,7 +98,7 @@ public class Flow {
                 "\n  firstSeen=" + firstSeen +
                 "\n  lastSeen=" + lastSeen +
                 "\n  duration=" + getDuration() + " sec" +
-                "\n  avgPacketSize=" + String.format("%.2f", getAveragePacketSize()) + " bytes" +
+                "\n  averagePacketSize=" + String.format("%.2f", getAveragePacketSize()) + " bytes" +
                 "\n  packetsPerSecond=" + String.format("%.2f", getPacketsPerSecond()) +
                 "\n}";
     }
