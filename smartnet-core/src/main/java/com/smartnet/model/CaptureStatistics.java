@@ -16,6 +16,7 @@ public class CaptureStatistics {
     private int ftpPackets;
     private int smtpPackets;
     private int unknownPackets;
+    private int totalThreats;
 
     public int getTotalPackets() {
         return totalPackets;
@@ -116,6 +117,13 @@ public class CaptureStatistics {
         unknownPackets++;
     }
 
+    public int getTotalThreats() {
+        return totalThreats;
+    }
+
+    public void incrementTotalThreats() {
+        totalThreats++;
+    }
     /**
      * Returns average packet size in bytes.
      */
@@ -149,6 +157,7 @@ public class CaptureStatistics {
                 FTP           : %d
                 SMTP          : %d
                 Unknown       : %d
+                Threats       : %d
                 """
                 .formatted(
                         totalPackets,
@@ -163,6 +172,7 @@ public class CaptureStatistics {
                         sshPackets,
                         ftpPackets,
                         smtpPackets,
-                        unknownPackets);
+                        unknownPackets,
+                        totalThreats);
     }
 }

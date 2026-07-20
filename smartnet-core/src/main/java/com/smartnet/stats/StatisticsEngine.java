@@ -4,6 +4,7 @@ import com.smartnet.model.AppType;
 import com.smartnet.model.CaptureStatistics;
 import com.smartnet.model.ParsedPacket;
 import com.smartnet.model.Protocol;
+import com.smartnet.model.ThreatType;
 
 public class StatisticsEngine {
 
@@ -51,7 +52,15 @@ public class StatisticsEngine {
                     break;
             }
         }
+        // ==========================
+        // Threat Statistics
+        // ==========================
 
+        if (packet.getThreatType() != null &&
+                packet.getThreatType() != ThreatType.NONE) {
+
+            statistics.incrementTotalThreats();
+        }
         // ==========================
         // Application Statistics
         // ==========================

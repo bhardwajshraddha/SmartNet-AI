@@ -44,6 +44,13 @@ public class ThreatDetectionEngine {
             default:
                 break;
         }
+        // Unusually large packet (basic DoS indicator)
+        if (packet.getPacketLength() > 1400) {
+
+            packet.setThreatType(ThreatType.DOS_ATTACK);
+            packet.setThreatSeverity(ThreatSeverity.MEDIUM);
+            return;
+        }
 
         // Unknown protocol
         if (packet.getProtocol() == null ||

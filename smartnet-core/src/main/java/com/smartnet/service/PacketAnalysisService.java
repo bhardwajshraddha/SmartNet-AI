@@ -131,11 +131,7 @@ public class PacketAnalysisService {
         summary.setHttpsPackets(stats.getHttpsPackets());
         summary.setDnsPackets(stats.getDnsPackets());
 
-        int threats = 0;
-
-        // Placeholder for now.
-        // We'll replace this with actual threat counting later.
-        summary.setTotalThreats(threats);
+        summary.setTotalThreats(stats.getTotalThreats());
 
         if (stats.getTotalPackets() > 0) {
 

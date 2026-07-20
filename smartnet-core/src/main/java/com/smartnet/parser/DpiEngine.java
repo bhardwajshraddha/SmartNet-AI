@@ -24,6 +24,8 @@ public class DpiEngine {
 
             packet.setAppType(AppType.HTTP);
 
+            detectHttpHost(packet);
+
         } else if (sourcePort == 443 || destinationPort == 443) {
 
             packet.setAppType(AppType.HTTPS);
@@ -80,9 +82,10 @@ public class DpiEngine {
 
             packet.setAppType(AppType.GITHUB);
 
-        } else if (domain.contains("openai")) {
+        } else if (domain.contains("openai")
+                || domain.contains("chatgpt")) {
 
-            packet.setAppType(AppType.HTTPS);
+            packet.setAppType(AppType.OTHER);
 
         } else if (domain.contains("facebook")) {
 
@@ -99,6 +102,28 @@ public class DpiEngine {
         } else if (domain.contains("microsoft")) {
 
             packet.setAppType(AppType.MICROSOFT);
+        }
+    }
+
+    private void detectHttpHost(ParsedPacket packet) {
+
+        if (packet.getPayload() == null ||
+                packet.getPayload().length == 0) {
+            return;
+        }
+
+        String payload = new String(packet.getPayload());
+
+        for (String line : payload.split("\\r?\\n")) {
+
+            if (line.toLowerCase().startsWith("host:")) {
+
+                String host = line.substring(5).trim();
+
+                packet.setServerName(host);
+
+                return;
+            }
         }
     }
 }
