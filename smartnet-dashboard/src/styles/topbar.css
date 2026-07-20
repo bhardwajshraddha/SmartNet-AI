@@ -1,0 +1,26 @@
+.topbar {
+  background: white;
+  padding: 20px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.topbar h2 {
+  margin: 0;
+}
+
+.topbar p {
+  margin-top: 5px;
+  color: gray;
+  font-size: 14px;
+}
+
+.topbar-user {
+  background: #2563eb;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 25px;
+  font-weight: bold;
+}
