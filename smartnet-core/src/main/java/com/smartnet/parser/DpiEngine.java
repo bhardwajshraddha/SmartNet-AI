@@ -7,80 +7,98 @@ public class DpiEngine {
 
     private final TlsParser tlsParser = new TlsParser();
 
-    /**
-     * Detects the application protocol using well-known ports.
-     */
     public void detectApplication(ParsedPacket packet) {
 
         if (packet == null) {
             return;
         }
 
-        // Default application
-        packet.setAppType(AppType.UNKNOWN);
-
         int sourcePort = packet.getSourcePort();
         int destinationPort = packet.getDestinationPort();
 
-        // ==========================
-        // HTTP
-        // ==========================
+        // -------------------------
+        // Port-based Detection
+        // -------------------------
+
         if (sourcePort == 80 || destinationPort == 80) {
 
             packet.setAppType(AppType.HTTP);
-            return;
-        }
 
-        // ==========================
-        // HTTPS
-        // ==========================
-        if (sourcePort == 443 || destinationPort == 443) {
+        } else if (sourcePort == 443 || destinationPort == 443) {
 
             packet.setAppType(AppType.HTTPS);
 
-            // Extract TLS Server Name (SNI) only if payload exists
-            if (packet.getPayload() != null &&
-                    packet.getPayload().length > 0) {
+            // Extract TLS Server Name
+            tlsParser.extractServerName(packet);
 
-                tlsParser.extractServerName(packet);
-            }
+            classifyByDomain(packet);
 
-            return;
-        }
-
-        // ==========================
-        // DNS
-        // ==========================
-        if (sourcePort == 53 || destinationPort == 53) {
+        } else if (sourcePort == 53 || destinationPort == 53) {
 
             packet.setAppType(AppType.DNS);
-            return;
-        }
 
-        // ==========================
-        // SSH
-        // ==========================
-        if (sourcePort == 22 || destinationPort == 22) {
+        } else if (sourcePort == 22 || destinationPort == 22) {
 
             packet.setAppType(AppType.SSH);
-            return;
-        }
 
-        // ==========================
-        // FTP
-        // ==========================
-        if (sourcePort == 21 || destinationPort == 21) {
+        } else if (sourcePort == 21 || destinationPort == 21) {
 
             packet.setAppType(AppType.FTP);
+
+        } else if (sourcePort == 25 || destinationPort == 25) {
+
+            packet.setAppType(AppType.SMTP);
+
+        } else {
+
+            packet.setAppType(AppType.UNKNOWN);
+        }
+    }
+
+    /**
+     * Detect application using extracted TLS SNI.
+     */
+    private void classifyByDomain(ParsedPacket packet) {
+
+        String domain = packet.getServerName();
+
+        if (domain == null) {
             return;
         }
 
-        // ==========================
-        // SMTP
-        // ==========================
-        if (sourcePort == 25 || destinationPort == 25) {
+        domain = domain.toLowerCase();
 
-            packet.setAppType(AppType.SMTP);
+        if (domain.contains("google")) {
+
+            packet.setAppType(AppType.GOOGLE);
+
+        } else if (domain.contains("youtube")) {
+
+            packet.setAppType(AppType.YOUTUBE);
+
+        } else if (domain.contains("github")) {
+
+            packet.setAppType(AppType.GITHUB);
+
+        } else if (domain.contains("openai")) {
+
+            packet.setAppType(AppType.HTTPS);
+
+        } else if (domain.contains("facebook")) {
+
+            packet.setAppType(AppType.FACEBOOK);
+
+        } else if (domain.contains("instagram")) {
+
+            packet.setAppType(AppType.INSTAGRAM);
+
+        } else if (domain.contains("amazon")) {
+
+            packet.setAppType(AppType.AMAZON);
+
+        } else if (domain.contains("microsoft")) {
+
+            packet.setAppType(AppType.MICROSOFT);
         }
     }
 }

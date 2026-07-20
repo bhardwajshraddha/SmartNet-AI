@@ -31,11 +31,11 @@ public class ThreatDetectionEngine {
 
         switch (port) {
 
-            case 23: // Telnet
-            case 135: // RPC
-            case 139: // NetBIOS
-            case 445: // SMB
-            case 3389: // Remote Desktop
+            case 23:
+            case 135:
+            case 139:
+            case 445:
+            case 3389:
 
                 packet.setThreatType(ThreatType.SUSPICIOUS_PORT);
                 packet.setThreatSeverity(ThreatSeverity.MEDIUM);
