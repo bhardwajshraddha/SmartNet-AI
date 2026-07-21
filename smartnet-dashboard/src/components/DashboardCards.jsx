@@ -1,55 +1,25 @@
-import { useEffect, useState } from "react";
-import StatCard from "./StatCard";
-import { getDashboardSummary } from "../services/dashboardService";
+import SummaryCard from "./SummaryCard";
 
-function DashboardCards() {
-  const [summary, setSummary] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadSummary();
-  }, []);
-
-  async function loadSummary() {
-    try {
-      const data = await getDashboardSummary();
-      setSummary(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  if (loading || !summary) {
-    return <div className="text-white text-xl">Loading Dashboard...</div>;
+function DashboardCards({ summary }) {
+  if (!summary) {
+    return (
+      <div className="text-white text-center mt-10">Loading Dashboard...</div>
+    );
   }
 
   return (
-    <div className="grid grid-cols-4 gap-6">
-      <StatCard
-        title="Total Packets"
-        value={summary.totalPackets}
-        color="text-cyan-400"
-      />
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <SummaryCard title="Total Packets" value={summary.totalPackets} />
 
-      <StatCard
-        title="Total Flows"
-        value={summary.totalFlows}
-        color="text-green-400"
-      />
+      <SummaryCard title="Total Flows" value={summary.totalFlows} />
 
-      <StatCard
-        title="Threats"
-        value={summary.totalThreats}
-        color="text-red-400"
-      />
+      <SummaryCard title="TCP Packets" value={summary.tcpPackets} />
 
-      <StatCard
-        title="Avg Packet Size"
-        value={`${summary.averagePacketSize.toFixed(2)} B`}
-        color="text-yellow-400"
-      />
+      <SummaryCard title="UDP Packets" value={summary.udpPackets} />
+
+      <SummaryCard title="HTTP Packets" value={summary.httpPackets} />
+
+      <SummaryCard title="Threats" value={summary.totalThreats} />
     </div>
   );
 }
