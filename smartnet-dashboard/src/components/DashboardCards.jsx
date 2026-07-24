@@ -19,7 +19,16 @@ function DashboardCards({ summary }) {
 
       <SummaryCard title="HTTP Packets" value={summary.httpPackets} />
 
-      <SummaryCard title="Threats" value={summary.totalThreats} />
+      <SummaryCard title="HTTPS Packets" value={summary.httpsPackets} />
+
+      <SummaryCard title="DNS Packets" value={summary.dnsPackets} />
+
+      <SummaryCard title="Threats" value={summary.threatCount} />
+
+      <SummaryCard
+        title="Avg Packet Size"
+        value={`${Number(summary.averagePacketSize).toFixed(2)} B`}
+      />
     </div>
   );
 }

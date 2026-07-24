@@ -2,35 +2,25 @@ import { useEffect, useState } from "react";
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
-import UploadCard from "../components/UploadCard";
 import DashboardCards from "../components/DashboardCards";
 import ProtocolChart from "../components/ProtocolChart";
-import FlowTable from "../components/FlowTable";
-import ThreatTable from "../components/ThreatTable";
-import UploadHistory from "../components/UploadHistory";
 
 import { getDashboardSummary } from "../services/dashboardService";
 
-function Dashboard() {
+function Statistics() {
   const [summary, setSummary] = useState(null);
-  const [lastFile, setLastFile] = useState("");
 
-  const loadDashboard = async (fileName = "") => {
+  const loadData = async () => {
     try {
       const data = await getDashboardSummary();
-
       setSummary(data);
-
-      if (fileName) {
-        setLastFile(fileName);
-      }
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
     }
   };
 
   useEffect(() => {
-    loadDashboard();
+    loadData();
   }, []);
 
   return (
@@ -42,30 +32,22 @@ function Dashboard() {
 
         <main className="p-8">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-white">Network Dashboard</h1>
+            <h1 className="text-4xl font-bold text-white">Statistics</h1>
 
             <p className="text-slate-400 mt-2">
-              Intelligent Network Traffic Analysis & Threat Detection Platform
+              Network traffic statistics and protocol analysis.
             </p>
           </div>
-
-          <UploadCard onUploadSuccess={(fileName) => loadDashboard(fileName)} />
-
-          <UploadHistory fileName={lastFile} />
 
           <DashboardCards summary={summary} />
 
           <div className="mt-8">
             <ProtocolChart />
           </div>
-
-          <FlowTable flows={summary?.flows || []} />
-
-          <ThreatTable totalThreats={summary?.totalThreats || 0} />
         </main>
       </div>
     </div>
   );
 }
 
-export default Dashboard;
+export default Statistics;

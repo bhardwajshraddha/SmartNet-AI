@@ -1,0 +1,73 @@
+package com.smartnet.controller;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.smartnet.service.PacketAnalysisService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api")
+public class ReportController {
+
+    @Autowired
+    private PacketAnalysisService packetAnalysisService;
+
+    @GetMapping("/analysis-report")
+    public ResponseEntity<byte[]> downloadJsonReport() throws Exception {
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        byte[] json = mapper.writerWithDefaultPrettyPrinter()
+                .writeValueAsBytes(packetAnalysisService.getDashboardResponse());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=smartnet-report.json")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(json);
+    }
+
+    @GetMapping("/analysis-report/csv")
+    public ResponseEntity<byte[]> downloadCsvReport() {
+
+        StringBuilder csv = new StringBuilder();
+
+        csv.append("Metric,Value\n");
+        csv.append("Total Packets,")
+                .append(packetAnalysisService.getDashboardResponse().getStatistics().getTotalPackets())
+                .append("\n");
+
+        csv.append("TCP Packets,")
+                .append(packetAnalysisService.getDashboardResponse().getStatistics().getTcpPackets())
+                .append("\n");
+
+        csv.append("UDP Packets,")
+                .append(packetAnalysisService.getDashboardResponse().getStatistics().getUdpPackets())
+                .append("\n");
+
+        csv.append("HTTP Packets,")
+                .append(packetAnalysisService.getDashboardResponse().getStatistics().getHttpPackets())
+                .append("\n");
+
+        csv.append("HTTPS Packets,")
+                .append(packetAnalysisService.getDashboardResponse().getStatistics().getHttpsPackets())
+                .append("\n");
+
+        csv.append("DNS Packets,")
+                .append(packetAnalysisService.getDashboardResponse().getStatistics().getDnsPackets())
+                .append("\n");
+
+        csv.append("Threats,")
+                .append(packetAnalysisService.getDashboardResponse().getStatistics().getTotalThreats())
+                .append("\n");
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=smartnet-report.csv")
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .body(csv.toString().getBytes());
+    }
+}
